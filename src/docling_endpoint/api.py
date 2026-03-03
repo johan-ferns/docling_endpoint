@@ -1,4 +1,5 @@
 from docling_endpoint.extractor import process_document
+from fastapi.responses import JSONResponse
 
 from docling_endpoint.models.extraction_models import ConvertedContent
 
@@ -15,17 +16,18 @@ app = FastAPI(
     title="Docling Document Extraction API",
     description="API for extracting content",
     version="1.0.0",
-    swagger="2.0"
+    openapi_version="3.1.0",
+    docs_url="/docs"
 )
 
 
-app.get("/")
+@app.get("/")
 def read_root():
     return {"Hello" : "User",
             "message" : "Docling Document Extraction API"}
 
 
-app.post("/upload/extract")
+@app.post("/upload/extract")
 async def extract_dociment(
     file : UploadFile = File(...),
     output_format : Literal["markdown", "json", "text", "html"] = "markdown"
@@ -43,7 +45,7 @@ async def extract_dociment(
 
     # Validate file types
     allowed_extensions = {".pdf", ".docx"}
-    file_extension = Path(file.filename).suffux.lower()
+    file_extension = Path(file.filename).suffix.lower()
 
     if file_extension not in allowed_extensions:
         raise HTTPException(
@@ -60,7 +62,7 @@ async def extract_dociment(
 
         result : ConvertedContent = process_document(temp_file_path, output_format)
 
-        return JSONresponse(content={
+        return JSONResponse(content={
             "filename" : file.filename,
             "file_type" : file_extension.lstrip("."),
             "output_format" : output_format,
@@ -71,6 +73,12 @@ async def extract_dociment(
         raise HTTPException(status_code=500,
                             detail=f"Error processing document : {str(e)}"
         )
+    
+    finally:
+        # Clean up temporary files
+        if temp_file_path or os.path.exists(temp_file_path):
+            os.unlink(temp_file_path)
+
 
 @app.get("/health")
 def health_check():

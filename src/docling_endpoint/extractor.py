@@ -7,6 +7,7 @@ from docling_endpoint.models.extraction_models import ConvertedContent, Metadata
 
 from typing import Literal, Dict
 from dotenv import load_dotenv
+from pathlib import Path
 import os
 
 load_dotenv()
