@@ -5,3 +5,5 @@ models/*
 
 # users will have to regenerate it.
 *uv.lock*
+
+.env

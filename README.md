@@ -12,4 +12,4 @@
 
     - on another terminal send the file:
 
-        curl -X POST "http://127.0.0.1:8000/upload/extract?output_format=markdown"   -H "accept: application/json"   -H "Content-Type: multipart/form-data"   -F "file=<ABSOLUTE PATH TO FILE>/Latest AI Advancements.pdf"
+        curl -X POST "http://127.0.0.1:8000/upload/extract?output_format=markdown"   -H "accept: application/json"   -H "Content-Type: multipart/form-data"   -F "file=@ABSOLUTE PATH TO FILE/Latest AI Advancements.pdf"

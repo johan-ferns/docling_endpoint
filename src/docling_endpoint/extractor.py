@@ -5,31 +5,48 @@ from docling.datamodel.pipeline_options import PdfPipelineOptions
 
 from docling_endpoint.models.extraction_models import ConvertedContent, MetadataContent
 
-from typing import Literal, Dict
+from typing import Literal, Dict, Optional
 from dotenv import load_dotenv
 from pathlib import Path
 import os
+import threading
 
 load_dotenv()
+
+
+# Global converter instance for reuse (singleton pattern)
+_converter_instance : Optional[DocumentConverter] = None
+_converter_lock = threading.Lock()
+
 
 # :TODO consider Docx PDF format option as well
 # :TODO accept PDF pipeline options as well.
 def get_converter():
     """Initialize and return a DocumentConverter instance."""
-    docling_path = os.getenv("DOCLING_MODEL_PATH")
-    converter = DocumentConverter(
-        format_options={
-            InputFormat.PDF : PdfFormatOption(
-                pipeline_cls=StandardPdfPipeline,
-                pipeline_options=PdfPipelineOptions(
-                    artifacts_path=Path(docling_path),
-                    do_ocr=False
-                )
-            )
-        }
-    )
 
-    return converter
+    global _converter_instance
+
+    if _converter_instance is None:
+        with _converter_lock:
+                if _converter_instance is None:
+                                    
+                    docling_path = os.getenv("DOCLING_MODEL_PATH")
+                    num_workers = int(os.getenv("DOCLING_MAX_WORKERS"))
+
+                    _converter_instance = DocumentConverter(
+                        format_options={
+                            InputFormat.PDF : PdfFormatOption(
+                                pipeline_cls=StandardPdfPipeline,
+                                pipeline_options=PdfPipelineOptions(
+                                    artifacts_path=Path(docling_path),
+                                    do_ocr=False
+                                )
+                            )
+                        },
+                        max_num_threads=num_workers
+                    )
+
+    return _converter_instance
 
 def process_document(file_path: str, 
                      output_format: Literal["markdown", "json", "text", "html"] = "markdown") -> ConvertedContent:
@@ -74,3 +91,13 @@ def process_document(file_path: str,
         )
     else:
         raise ValueError(f"Unsupported output format: {output_format}")
+
+
+def reset_converter():
+    """
+    Reset the global converter instance.
+    Useful for testing or when you need to reinitialize with different settings.
+    """
+    global _converter_instance
+    with _converter_lock:
+        _converter_instance = None
