@@ -1,7 +1,8 @@
 from docling.document_converter import DocumentConverter, PdfFormatOption
 from docling.datamodel.base_models import InputFormat
 from docling.pipeline.standard_pdf_pipeline import StandardPdfPipeline
-from docling.datamodel.pipeline_options import PdfPipelineOptions
+from docling.datamodel.accelerator_options import AcceleratorOptions
+from docling.datamodel.pipeline_options import PdfPipelineOptions, ThreadedPdfPipelineOptions
 
 from docling_endpoint.models.extraction_models import ConvertedContent, MetadataContent
 
@@ -21,6 +22,7 @@ _converter_lock = threading.Lock()
 
 # :TODO consider Docx PDF format option as well
 # :TODO accept PDF pipeline options as well.
+# :TODO logs
 def get_converter():
     """Initialize and return a DocumentConverter instance."""
 
@@ -39,11 +41,24 @@ def get_converter():
                                 pipeline_cls=StandardPdfPipeline,
                                 pipeline_options=PdfPipelineOptions(
                                     artifacts_path=Path(docling_path),
-                                    do_ocr=False
+                                    do_ocr=False,
+                                    do_table_structure=True,
+                                    do_code_enrichment=False,  # Disable if not needed
+                                    do_formula_enrichment=False,  # Disable if not needed
+                                    generate_page_images=False,  # Disable if not needed
+                                    generate_picture_images=False,  # Disable if not needed
+                                    # ocr_batch_size=num_workers,
+                                    # layout_bac_size=num_workers,
+                                    # table_batch_size=num_workers,
+                                    # queue_max_size=200,
+                                    # batch_polling_interval_seconds=0.1,
+                                    accelerator_options=AcceleratorOptions(
+                                        num_threads=num_workers,
+                                        device="cpu"
+                                    ),
                                 )
                             )
-                        },
-                        max_num_threads=num_workers
+                        }
                     )
 
     return _converter_instance
@@ -101,3 +116,14 @@ def reset_converter():
     global _converter_instance
     with _converter_lock:
         _converter_instance = None
+
+
+if __name__ == "__main__":
+
+    print("In Main")
+    print(os.getpid())
+    # file_path = "data/pdf/input/example_3.pdf"
+    file_path = "data/pdf/input/Latest AI Advancements.pdf"
+    result = process_document(file_path=file_path)
+
+    print(result)
