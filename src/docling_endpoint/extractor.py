@@ -6,7 +6,7 @@ from docling.datamodel.pipeline_options import PdfPipelineOptions, ThreadedPdfPi
 
 from docling_endpoint.models.extraction_models import ConvertedContent, MetadataContent
 
-from typing import Literal, Dict, Optional
+from typing import Literal, Dict, Optional, Callable
 from dotenv import load_dotenv
 from pathlib import Path
 import os
@@ -77,6 +77,8 @@ def process_document(file_path: str,
     """ 
 
     converter = get_converter()
+    content = None
+    
     result = converter.convert(file_path)
 
     metadata = MetadataContent(
@@ -85,27 +87,31 @@ def process_document(file_path: str,
                     num_pictures = len(result.document.pictures)
                 )
     if output_format == "markdown":
-        return ConvertedContent(
-                text = result.document.export_to_markdown(),
-                metadata = metadata
+        content = ConvertedContent(
+                    text = result.document.export_to_markdown(),
+                    metadata = metadata
         )
     elif output_format == "text":
-        return ConvertedContent(
+        content = ConvertedContent(
                 text = result.document.export_to_text(),
                 metadata = metadata
         )
     elif output_format == "json":
-        return ConvertedContent(
+        content = ConvertedContent(
                 text = result.document.export_to_dict(),
                 metadata = metadata
         )
     elif output_format == "html":
-        return ConvertedContent(
+        content = ConvertedContent(
                 text = result.document.export_to_html(),
                 metadata = metadata
         )
     else:
         raise ValueError(f"Unsupported output format: {output_format}")
+
+    
+    return content
+
 
 
 def reset_converter():
