@@ -1,4 +1,4 @@
-from docling.document_converter import DocumentConverter, PdfFormatOption
+from docling.document_converter import DocumentConverter, PdfFormatOption, WordFormatOption
 from docling.datamodel.base_models import InputFormat
 from docling.pipeline.standard_pdf_pipeline import StandardPdfPipeline
 from docling.datamodel.accelerator_options import AcceleratorOptions
@@ -57,6 +57,9 @@ def get_converter():
                                         device="cpu"
                                     ),
                                 )
+                            ),
+                            InputFormat.DOCX : WordFormatOption(
+                                    # often empty/default is enough unless you need overrides
                             )
                         }
                     )
@@ -129,7 +132,8 @@ if __name__ == "__main__":
     print("In Main")
     print(os.getpid())
     # file_path = "data/pdf/input/example_3.pdf"
-    file_path = "data/pdf/input/Latest AI Advancements.pdf"
+    # file_path = "data/pdf/input/Latest AI Advancements.pdf"
+    file_path = "data/word/input/example_3.docx"
     result = process_document(file_path=file_path)
 
     print(result)
