@@ -1,6 +1,6 @@
-from docling_endpoint.extractor import get_converter, process_document
 from fastapi.responses import JSONResponse
 
+from docling_endpoint.extractor import get_converter, process_document
 from docling_endpoint.models.extraction_models import ConvertedContent
 
 from fastapi import FastAPI, UploadFile, File, HTTPException
