@@ -118,7 +118,8 @@ async def extract_dociment(
 def health_check():
     """Health check endpoint"""
     logger.info("🏥 Health check endpoint accessed")
-    if os.path.exists(os.getenv("DOCLING_MODEL_PATH")):
+    model_path = os.getenv("DOCLING_MODEL_PATH")
+    if os.path.exists(model_path):
         logger.info(f"✅ Health check passed - model path exists: {model_path}")
         return {"status": "healthy", "service": "docling-endpoint-active"}
     else:
